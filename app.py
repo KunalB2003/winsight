@@ -1,12 +1,14 @@
 from flask import Flask, render_template, Response
 import cv2
 import numpy as np
+from roboflow import Roboflow
 
 app = Flask(__name__)
-
-print("Connecting Webcam")
 camera = cv2.VideoCapture(2)
-print("Webcam Connected")
+
+rf = Roboflow(api_key="3nUG3gBfitus0Ympj3Y2")
+project = rf.workspace().project("playing-cards-ow27d")
+model = project.version(4).model
 
 def gen_color_frames():
     while True:
@@ -25,15 +27,30 @@ def gen_altered_frames():
         if not success:
             break
         else:
+            ret, buffer = cv2.imencode('.jpg', frame)
+            color_bytes = buffer.tobytes()
+
+
+
             gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             blurred_frame = cv2.GaussianBlur(gray_frame, (5, 5), 0)
             ret, thresholded_frame = cv2.threshold(blurred_frame, 150, 255, cv2.THRESH_BINARY)        
-            # contoured_frame, _ = cv2.findContours(thresholded_frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             ret, buffer = cv2.imencode('.jpg', thresholded_frame)
             altered_bytes = buffer.tobytes()
             
+            # print(model.predict(frame, confidence=40, overlap=30).json()["predictions"])
+            predictions = model.predict(frame, confidence=40, overlap=30).json()["predictions"]
+            for prediction in predictions:
+                print(prediction["class"])
+
+            # model.predict(frame, confidence=40, overlap=30).save("prediction.jpg")
+
+            # yield (b'--frame\r\n'
+            #        b'Content-Type: image/jpeg\r\n\r\n' + altered_bytes + b'\r\n')
+            # yield("prediction.jpg");
             yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + altered_bytes + b'\r\n')
+                   b'Content-Type: image/jpeg\r\n\r\n' + color_bytes + b'\r\n')
+
 
 @app.route("/")
 def home():
