@@ -1,14 +1,69 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <title>RP Flask REST API</title>
+    <meta charset="utf-8">
+    <title>Display Webcam Stream</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: rgb(38, 69, 39);
+            margin: 0;
+            /* Remove default margin */
+            padding: 0;
+            /* Remove default padding */
+        }
+
+        .container {
+            display: flex;
+            /* Use flexbox to create a flexible layout */
+            justify-content: space-between;
+            /* Space the three sections evenly */
+            align-items: center;
+            /* Center items vertically */
+            height: 100vh;
+            /* Set the container to full viewport height */
+        }
+
+        .panel {
+            flex: 1;
+            /* Each panel takes up equal space */
+            background-color: rgba(255, 255, 255, 0.8);
+            /* Set a light semi-transparent background color */
+            padding: 20px;
+        }
+
+        .content {
+            flex: 3;
+            /* The center content takes up more space */
+        }
+
+        h1 {
+            font-size: 60px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        img {
+            width: 100%;
+            /* Set the video feed to 100% of the container width */
+        }
+    </style>
 </head>
 
 <body>
-    <h1>andrew is poggers</h1>
-    <h2>kunal is poggers but smaller</h2>
+    <div class="container">
+        <div class="panel">
+            <p>Sample text for the left panel.</p>
+        </div>
+        <div class="content">
+            <h1>Winsight</h1>
+            <img src="{{ url_for('video_feed') }}" alt="Webcam Stream">
+        </div>
+        <div class="panel">
+            <p>Sample text for the right panel.</p>
+        </div>
+    </div>
 </body>
 
 </html>
