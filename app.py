@@ -4,7 +4,7 @@ import numpy as np
 from roboflow import Roboflow
 
 app = Flask(__name__)
-camera = cv2.VideoCapture(0)
+camera = cv2.VideoCapture(2)
 
 rf = Roboflow(api_key="3nUG3gBfitus0Ympj3Y2")
 project = rf.workspace().project("playing-cards-ow27d")
@@ -31,9 +31,8 @@ def gen_altered_frames():
             color_bytes = buffer.tobytes()
 
             predictions = model.predict(frame, confidence=40, overlap=30).json()["predictions"]
-            print(len(predictions))
             for prediction in predictions:
-                print(prediction["class"])
+                print(prediction["class"] + " : " + str(prediction["confidence"]))
 
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + color_bytes + b'\r\n')
