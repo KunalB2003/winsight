@@ -3,50 +3,77 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Display Webcam Stream</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: rgb(38, 69, 39);
+            font-family: 'Arial', sans-serif;
+            background-color: #154734;
             margin: 0;
-            /* Remove default margin */
             padding: 0;
-            /* Remove default padding */
         }
 
         .container {
             display: flex;
-            /* Use flexbox to create a flexible layout */
             justify-content: space-between;
-            /* Space the three sections evenly */
-            align-items: center;
-            /* Center items vertically */
-            height: 100vh;
-            /* Set the container to full viewport height */
+            align-items: stretch;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .panel {
-            flex: 1;
-            /* Each panel takes up equal space */
-            background-color: rgba(255, 255, 255, 0.8);
-            /* Set a light semi-transparent background color */
-            padding: 20px;
+            flex: 0.5;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-top: 200px;
+            max-height: 50vh;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .panel:hover {
+            background-color: #F39C12;
         }
 
         .content {
             flex: 3;
-            /* The center content takes up more space */
-        }
-
-        h1 {
-            font-size: 60px;
-            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             text-align: center;
         }
 
-        img {
-            width: 100%;
-            /* Set the video feed to 100% of the container width */
+        h1 {
+            font-size: 48px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        img#webcam {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+            width: 800px;
+            height: 600px;
+            object-fit: cover;
+        }
+
+        p {
+            font-size: 16px;
+            color: #000;
+        }
+
+        .container {
+            background-image: url('/Users/jungmin/Documents/GitHub/winsight/assets/background.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
         }
     </style>
 </head>
@@ -54,16 +81,15 @@
 <body>
     <div class="container">
         <div class="panel">
-            <p>Sample text for the left panel.</p>
+            <p>Stats</p>
         </div>
         <div class="content">
             <h1>Winsight</h1>
-            <img src="{{ url_for('video_feed_altered') }}" alt="Webcam Stream">
+            <img id="webcam" src="{{ url_for('video_feed_altered') }}" alt="Webcam Stream">
         </div>
         <div class="panel">
-            <p>Sample text for the right panel.</p>
+            <p>Your hand</p>
         </div>
     </div>
 </body>
-
 </html>

@@ -4,7 +4,7 @@ import numpy as np
 from roboflow import Roboflow
 
 app = Flask(__name__)
-camera = cv2.VideoCapture(2)
+camera = cv2.VideoCapture(1)
 
 rf = Roboflow(api_key="3nUG3gBfitus0Ympj3Y2")
 project = rf.workspace().project("playing-cards-ow27d")
