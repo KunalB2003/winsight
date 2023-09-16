@@ -6,7 +6,7 @@
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #154734;
+            background-color: rgba(54, 54, 64, 1);
             margin: 0;
             padding: 0;
         }
@@ -69,12 +69,6 @@
             color: #000;
         }
 
-        .container {
-            background-image: url('/Users/jungmin/Documents/GitHub/winsight/assets/background.jpg');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }
     </style>
 </head>
 
@@ -84,7 +78,7 @@
             <p>Stats</p>
         </div>
         <div class="content">
-            <h1>Winsight</h1>
+            <h1><img src="/Users/jungmin/Documents/GitHub/winsight/assets/logo.png" alt="Winsight Logo"></h1>
             <img id="webcam" src="{{ url_for('video_feed_altered') }}" alt="Webcam Stream">
         </div>
         <div class="panel">
