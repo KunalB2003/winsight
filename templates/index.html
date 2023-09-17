@@ -57,7 +57,7 @@
         }
 
         .panel-text:last-child {
-            margin-right: 90px;
+            margin-right: 150px;
         }
 
         .panel:hover {
@@ -106,22 +106,67 @@
 <body>
     <div class="container">
         <div class="panel">
+            <p id="dealer_cards"></p>
+            <p id="player_cards"></p>
         </div>
         <div class="content">
             <h1><img src="../static/logo.png" alt="Winsight Logo"></h1>
             <img id="webcam" src="{{ url_for('video_feed_altered') }}" alt="Webcam Stream">
         </div>
         <div class="panel">
+            <p id="bust_percentage"></p>
+            <p>bust_percentage</p>
+            <p id="multiplier"></p>
+            <p>multiplier</p>
+            <p id="move_option"></p>
+            <p>move_option</p>
         </div>
     </div>
     <div class="container">
         <div class="panel-text">
-            <h2>Your hand:</h2>
+            <h2>Tabled hands:</h2>
         </div>
         <div class="panel-text">
             <h2>Your chances:</h2>
         </div>
     </div>
 </body>
+<script>
+    const updateFrontend = () => {
+        fetch('/player_cards')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("player_cards").textContent = data;
+            })
+
+        fetch('/dealer_cards')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("dealer_cards").textContent = data;
+            })
+
+        fetch('/bust_percentage')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("bust_percentage").textContent = data;
+            })
+
+        fetch('/multiplier')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("multiplier").textContent = data;
+            })
+
+        fetch('/move_option')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("move_option").textContent = data;
+            })
+
+
+    };
+
+    setInterval(updateFrontend, 500); 
+</script>
 
 </html>

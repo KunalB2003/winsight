@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Response
+from flask import Flask, render_template, Response, jsonify
 import cv2
 import numpy as np
 from roboflow import Roboflow
@@ -13,6 +13,9 @@ ACE_COUNT = 4
 PLAYER_TOTAL = 0
 DEALER_TOTAL = 0
 SOFT = False
+
+BUST_PERCENTAGE = 0
+
 
 app = Flask(__name__)
 camera = cv2.VideoCapture(2)
@@ -46,9 +49,9 @@ def gen_altered_frames():
                 "predictions"]
 
             for prediction in predictions:
-                if prediction["confidence"] > 0.75 and prediction["class"] not in BURNED_CARDS:
-                    BURNED_CARDS.append(prediction["class"])
-                    start_game(prediction["class"])
+                if prediction["confidence"] > 0.75 and transcribeSymbol(prediction["class"]) not in BURNED_CARDS:
+                    BURNED_CARDS.append(transcribeSymbol(prediction["class"]))
+                    start_game(transcribeSymbol(prediction["class"]))
                     print("Burn:", BURNED_CARDS)
                     print("Player:", PLAYER_HAND)
                     print("Dealer:", DEALER_HAND)
@@ -59,30 +62,86 @@ def gen_altered_frames():
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + color_bytes + b'\r\n')
 
-# def getburnedcards():
-#     return BURNED_CARDS
-
-
 @app.route("/")
 def home():
-    return render_template('index.html')
-
-@app.route('/video_feed')
-def video_feed():
-    return Response(gen_color_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    global PLAYER_HAND
+    return render_template('index.html', cards = PLAYER_HAND)
 
 @app.route('/video_feed_altered')
 def video_feed_altered():
     return Response(gen_altered_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-#cope
+@app.route('/player_cards')
+def player_cards():
+    return jsonify(PLAYER_HAND)
+
+@app.route('/dealer_cards')
+def dealer_cards():
+    return jsonify(DEALER_HAND)
+
+@app.route('/bust_percentage')
+def bust_percentage():
+    calculate_bust_percentage()
+    return jsonify(BUST_PERCENTAGE)
+                   
+@app.route('/multiplier')
+def multiplier():
+    return jsonify("?")
+                   
+@app.route('/move_option')
+def move_option():
+    return jsonify("?")
+
+def calculate_bust_percentage():
+    global BUST_PERCENTAGE
+    global BURNED_CARDS
+    global PLAYER_HAND
+    global DEALER_HAND
+
+    hand_val = 0
+    for card in PLAYER_HAND: 
+        try:
+            hand_val += int(card[:-1])
+        except:
+            hand_val += 10
+
+    if hand_val > 21:
+        BUST_PERCENTAGE = 100
+        return BUST_PERCENTAGE
+    
+    if hand_val <= 11:
+        BUST_PERCENTAGE = 0
+        return BUST_PERCENTAGE
+    
+    accepted_cards = (21 - hand_val) * 4
+    for card in BURNED_CARDS:
+        try: 
+            if int(card[:-1]) < (21 - hand_val):
+                accepted_cards -= 1
+        except:
+            if (10 < (21 - hand_val)):
+                accepted_cards -= 1
+    
+    BUST_PERCENTAGE = 100 - (100 * (accepted_cards / (1.0  * (52 - len(BURNED_CARDS)))))
+        
+    return BUST_PERCENTAGE
+
+def transcribeSymbol(input): 
+    if input[-1] == "H":
+        return input[:-1] + "♥"
+    if input[-1] == "C":
+        return input[:-1] + "♣"
+    if input[-1] == "D":
+        return input[:-1] + "♦"
+    if input[-1] == "S":
+        return input[:-1] + "♠"
+    return input
 
 # Definitions
 halves_values = {
     '2': 0.5, '3': 1, '4': 1, '5': 1.5, '6': 1, '7': 0.5, '8': 0,
     '9': -0.5, '10': -1, 'J': -1, 'Q': -1, 'K': -1, 'A': -1
 }
-
 
 def start_game(card):
     global GAME_OVER
@@ -126,8 +185,6 @@ def start_game(card):
     else:
         DEALER_HAND.append(card)
 
-    if len(DEALER_HAND) > 0 and decide_action() == "Stand":
-        PLAYER_TURN = False
 
 
 def evaluate_hand(card):
