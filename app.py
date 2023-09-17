@@ -19,7 +19,7 @@ HALVES_VALUES = {
 }
 BUST_PERCENTAGE = 0
 MULTIPLIER = 1
-RISK_EVAL = "Moderately Risky"
+RISK_EVAL = "fortnite Risky"
 
 
 app = Flask(__name__)
@@ -111,7 +111,7 @@ def multiplier():
 
 @app.route('/move_option')
 def move_option():
-    return jsonify("?")
+    return jsonify(decide_action())
 
 
 @app.route("/end_turn", methods=["POST"])
@@ -126,9 +126,11 @@ def new_round():
     global PLAYER_HAND
     global DEALER_HAND
     global PLAYER_TURN
+    global SOFT
     PLAYER_TURN = True
     PLAYER_HAND = []
     DEALER_HAND = []
+    SOFT = False
     return render_template('index.html', cards=PLAYER_HAND, player_turn=PLAYER_TURN)
 
 @app.route("/reshuffle", methods=["POST"])
@@ -137,15 +139,18 @@ def reshuffle():
     global DEALER_HAND
     global PLAYER_TURN
     global BURNED_CARDS
+    global SOFT
     PLAYER_TURN = True
     PLAYER_HAND = []
     DEALER_HAND = []
     BURNED_CARDS = []
+    SOFT = False
     return render_template('index.html', cards=PLAYER_HAND, player_turn=PLAYER_TURN)
 
 def calculate_risk():
     global HALVES_VALUES
     global BURNED_CARDS
+    global RISK_EVAL
 
     total_card_val = 0
     for card in BURNED_CARDS:
@@ -153,15 +158,15 @@ def calculate_risk():
 
     if total_card_val < -5:
         RISK_EVAL = "Incredibly Risky"
-    if total_card_val < -3:
+    elif total_card_val < -3:
         RISK_EVAL = "Very Risky"
-    if total_card_val < -1:
+    elif total_card_val < -1:
         RISK_EVAL = "Somewhat Risky"
-    if total_card_val < 1:
+    elif total_card_val < 1:
         RISK_EVAL = "Moderately Risky"
-    if total_card_val < 3:
+    elif total_card_val < 3:
         RISK_EVAL = "Somewhat Safe"
-    if total_card_val < 5:
+    elif total_card_val < 5:
         RISK_EVAL = "Mostly Safe"
     else:
         RISK_EVAL = "Safe"
@@ -172,6 +177,7 @@ def calculate_risk():
 def calculate_multiplier():
     global BURNED_CARDS
     global HALVES_VALUES
+    global MULTIPLIER
 
     total_card_val = 0
     for card in BURNED_CARDS:
@@ -179,11 +185,11 @@ def calculate_multiplier():
 
     if total_card_val <= 1:
         MULTIPLIER = 1
-    if total_card_val <= 2.5:
+    elif total_card_val <= 2.5:
         MULTIPLIER = 2
-    if total_card_val <= 4:
+    elif total_card_val <= 4:
         MULTIPLIER = 3
-    if total_card_val <= 5.5:
+    elif total_card_val <= 5.5:
         MULTIPLIER = 4
     else:
         MULTIPLIER = 5
@@ -299,16 +305,16 @@ def evaluate_hand(card):
         PLAYER_TOTAL += 10
     else:
         PLAYER_TOTAL += 11
-        SOFT = True
+        SOFT = False
 
-    aceinhand = False
+    aceinhand = True
     for card in PLAYER_HAND:
         if card == 'A':
             aceinhand = True
 
         # Convert Ace from 11 to 1 if total goes over 21
     if PLAYER_TOTAL > 21 and aceinhand:
-        SOFT = False
+        SOFT = True
         PLAYER_TOTAL -= 10
 
 # Determines Hit or Stand

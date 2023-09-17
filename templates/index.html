@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <style>
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Comfortaa', sans-serif;
             background-color: rgb(20, 20, 20);
             background-image: url('../static/background.png');
             background-repeat: no-repeat;
@@ -40,6 +40,8 @@
 
         .panel:first-child {
             margin-left: 60px;
+            overflow-wrap: break-word;
+            max-width: 100%
         }
 
         .panel:last-child {
@@ -74,18 +76,15 @@
         }
 
         h1 {
-            font-size: 48px;
-            font-weight: bold;
-            color: #fff;
             margin-bottom: 20px;
-            margin-top: 35px;
+            margin-top: 40px;
         }
 
         img#webcam {
             max-width: 100%;
             border-radius: 10px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
-            margin-top: 50px;
+            margin-top: 5px;
             width: 850px;
             object-fit: cover;
         }
@@ -95,10 +94,30 @@
             color: #000;
         }
 
-        /* Update the logo size and position */
         h1 img {
             width: 60%;
             margin-left: -75px;
+        }
+
+        .btn {
+            background: linear-gradient(to bottom, #81ba37, #236f3e);
+            border: none;
+            color: #fffffe;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-transform: none;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: background 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            text-shadow: 1px 1px 0px #000;
+            margin-left: 90px;
+            margin-top: 25px;
+        }
+
+        .btn:hover {
+            background: linear-gradient(to bottom, #33cc33, #00cc00);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         #player_cards {
@@ -119,22 +138,27 @@
 <body>
     <div class="container">
         <div class="panel">
-            <p id="dealer_cards"></p>
-            <p id="player_cards"></p>
+            <h3>Dealer:</h3>
+            <h1 id="dealer_cards"></h1>
+            <h3>Player:</h3>
+            <h1 id="player_cards"></h1>
         </div>
         <div class="content">
             <h1><img src="../static/logo.png" alt="Winsight Logo"></h1>
             <img id="webcam" src="{{ url_for('video_feed_altered') }}" alt="Webcam Stream">
         </div>
         <div class="panel">
+            <h3>Bust chance:</h3>
             <p id="bust_percentage"></p>
-            <p>bust_percentage</p>
+            <h4> </h4>
+            <h4>Risk assessment:</h3>
             <p id="risk_eval"></p>
-            <p>risk_evaluation</p>
+            <h4> </h4>
+            <h3>Bet multiplier:</h3>
             <p id="multiplier"></p>
-            <p>multiplier</p>
-            <p id="move_option"></p>
-            <p>move_option</p>
+            <h4> </h4>
+            <h3>Best move:</h3>
+            <h2 id="move_option"></h2>
         </div>
     </div>
     <div class="container">
@@ -143,13 +167,13 @@
         </div>
 
         <form action="/end_turn" method="post" onsubmit="submitForm()">
-            <button>End Turn</button>
+            <button class="btn">End Turn</button>
         </form>
         <form action="/new_round" method="post" onsubmit="submitForm()">
-            <button>New Round</button>
+            <button class="btn">New Round</button>
         </form>
         <form action="/reshuffle" method="post" onsubmit="submitForm()">
-            <button>Reshuffle</button>
+            <button class="btn">Reshuffle</button>
         </form>
 
         <div class="panel-text">
@@ -174,7 +198,7 @@
         fetch('/bust_percentage')
             .then(response => response.json())
             .then(data => {
-                document.getElementById("bust_percentage").textContent = data;
+                document.getElementById("bust_percentage").textContent = data + "%";
             })
 
         fetch('/risk_eval')
@@ -186,7 +210,7 @@
         fetch('/multiplier')
             .then(response => response.json())
             .then(data => {
-                document.getElementById("multiplier").textContent = data;
+                document.getElementById("multiplier").textContent = "x" + data;
             })
 
         fetch('/move_option')
