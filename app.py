@@ -157,17 +157,17 @@ def calculate_risk():
         total_card_val += HALVES_VALUES[card[:-1]]
 
     if total_card_val < -5:
-        RISK_EVAL = "Incredibly Risky"
+        RISK_EVAL = "EXTREME"
     elif total_card_val < -3:
-        RISK_EVAL = "Very Risky"
+        RISK_EVAL = "VERY High"
     elif total_card_val < -1:
-        RISK_EVAL = "Somewhat Risky"
+        RISK_EVAL = "High"
     elif total_card_val < 1:
-        RISK_EVAL = "Moderately Risky"
+        RISK_EVAL = "Medium"
     elif total_card_val < 3:
-        RISK_EVAL = "Somewhat Safe"
+        RISK_EVAL = "Low"
     elif total_card_val < 5:
-        RISK_EVAL = "Mostly Safe"
+        RISK_EVAL = "Very Low"
     else:
         RISK_EVAL = "Safe"
 

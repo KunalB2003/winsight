@@ -40,8 +40,6 @@
 
         .panel:first-child {
             margin-left: 60px;
-            overflow-wrap: break-word;
-            max-width: 100%
         }
 
         .panel:last-child {
@@ -149,16 +147,13 @@
         </div>
         <div class="panel">
             <h3>Bust chance:</h3>
-            <p id="bust_percentage"></p>
-            <h4> </h4>
-            <h4>Risk assessment:</h3>
-            <p id="risk_eval"></p>
-            <h4> </h4>
+            <h1 id="bust_percentage"></h1>
+            <h3>Risk assessment:</h3>
+            <h2 id="risk_eval" style="text-align:center"></h2>
             <h3>Bet multiplier:</h3>
-            <p id="multiplier"></p>
-            <h4> </h4>
+            <h1 id="multiplier"></h1>
             <h3>Best move:</h3>
-            <h2 id="move_option"></h2>
+            <h1 id="move_option"></h1>
         </div>
     </div>
     <div class="container">
@@ -198,7 +193,7 @@
         fetch('/bust_percentage')
             .then(response => response.json())
             .then(data => {
-                document.getElementById("bust_percentage").textContent = data + "%";
+                document.getElementById("bust_percentage").textContent = (data.toFixed(2)) + "%";
             })
 
         fetch('/risk_eval')
@@ -210,7 +205,7 @@
         fetch('/multiplier')
             .then(response => response.json())
             .then(data => {
-                document.getElementById("multiplier").textContent = "x" + data;
+                document.getElementById("multiplier").textContent = "x " + data;
             })
 
         fetch('/move_option')
