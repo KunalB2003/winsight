@@ -78,7 +78,7 @@
             font-weight: bold;
             color: #fff;
             margin-bottom: 20px;
-            margin-top: 5px;
+            margin-top: 35px;
         }
 
         img#webcam {
@@ -100,6 +100,19 @@
             width: 60%;
             margin-left: -75px;
         }
+
+        #player_cards {
+            {% if player_turn %}
+                background-color: green;
+            {% endif %}
+        }
+
+        #dealer_cards {
+            {% if not player_turn %}
+                background-color: green;
+            {% endif %}
+        }
+
     </style>
 </head>
 
@@ -116,6 +129,8 @@
         <div class="panel">
             <p id="bust_percentage"></p>
             <p>bust_percentage</p>
+            <p id="risk_eval"></p>
+            <p>risk_evaluation</p>
             <p id="multiplier"></p>
             <p>multiplier</p>
             <p id="move_option"></p>
@@ -126,6 +141,17 @@
         <div class="panel-text">
             <h2>Tabled hands:</h2>
         </div>
+
+        <form action="/end_turn" method="post" onsubmit="submitForm()">
+            <button>End Turn</button>
+        </form>
+        <form action="/new_round" method="post" onsubmit="submitForm()">
+            <button>New Round</button>
+        </form>
+        <form action="/reshuffle" method="post" onsubmit="submitForm()">
+            <button>Reshuffle</button>
+        </form>
+
         <div class="panel-text">
             <h2>Your chances:</h2>
         </div>
@@ -151,6 +177,12 @@
                 document.getElementById("bust_percentage").textContent = data;
             })
 
+        fetch('/risk_eval')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("risk_eval").textContent = data;
+            })
+
         fetch('/multiplier')
             .then(response => response.json())
             .then(data => {
@@ -163,8 +195,11 @@
                 document.getElementById("move_option").textContent = data;
             })
 
-
     };
+
+    function submitForm() {
+        return false;
+    }
 
     setInterval(updateFrontend, 500); 
 </script>

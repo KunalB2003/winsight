@@ -13,8 +13,13 @@ ACE_COUNT = 4
 PLAYER_TOTAL = 0
 DEALER_TOTAL = 0
 SOFT = False
-
+HALVES_VALUES = {
+    '2': 0.5, '3': 1, '4': 1, '5': 1.5, '6': 1, '7': 0.5, '8': 0,
+    '9': -0.5, '10': -1, 'J': -1, 'Q': -1, 'K': -1, 'A': -1
+}
 BUST_PERCENTAGE = 0
+MULTIPLIER = 1
+RISK_EVAL = "Moderately Risky"
 
 
 app = Flask(__name__)
@@ -23,6 +28,7 @@ camera = cv2.VideoCapture(2)
 rf = Roboflow(api_key="3nUG3gBfitus0Ympj3Y2")
 project = rf.workspace().project("playing-cards-ow27d")
 model = project.version(4).model
+
 
 def gen_color_frames():
     while True:
@@ -49,9 +55,9 @@ def gen_altered_frames():
                 "predictions"]
 
             for prediction in predictions:
-                if prediction["confidence"] > 0.75 and transcribeSymbol(prediction["class"]) not in BURNED_CARDS:
-                    BURNED_CARDS.append(transcribeSymbol(prediction["class"]))
-                    start_game(transcribeSymbol(prediction["class"]))
+                if prediction["confidence"] > 0.75 and transcribe_symbol(prediction["class"]) not in BURNED_CARDS:
+                    BURNED_CARDS.append(transcribe_symbol(prediction["class"]))
+                    start_game(transcribe_symbol(prediction["class"]))
                     print("Burn:", BURNED_CARDS)
                     print("Player:", PLAYER_HAND)
                     print("Dealer:", DEALER_HAND)
@@ -62,35 +68,128 @@ def gen_altered_frames():
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + color_bytes + b'\r\n')
 
+
 @app.route("/")
 def home():
     global PLAYER_HAND
-    return render_template('index.html', cards = PLAYER_HAND)
+    global PLAYER_TURN
+    return render_template('index.html', cards=PLAYER_HAND, player_turn=PLAYER_TURN)
+
 
 @app.route('/video_feed_altered')
 def video_feed_altered():
     return Response(gen_altered_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
+
 @app.route('/player_cards')
 def player_cards():
     return jsonify(PLAYER_HAND)
+
 
 @app.route('/dealer_cards')
 def dealer_cards():
     return jsonify(DEALER_HAND)
 
+
 @app.route('/bust_percentage')
 def bust_percentage():
     calculate_bust_percentage()
     return jsonify(BUST_PERCENTAGE)
-                   
+
+
+@app.route('/risk_eval')
+def risk_eval():
+    calculate_risk()
+    return jsonify(RISK_EVAL)
+
+
 @app.route('/multiplier')
 def multiplier():
-    return jsonify("?")
-                   
+    calculate_multiplier()
+    return jsonify(MULTIPLIER)
+
+
 @app.route('/move_option')
 def move_option():
     return jsonify("?")
+
+
+@app.route("/end_turn", methods=["POST"])
+def end_turn():
+    global PLAYER_HAND
+    global PLAYER_TURN
+    PLAYER_TURN = False
+    return render_template('index.html', cards=PLAYER_HAND, player_turn=PLAYER_TURN)
+
+@app.route("/new_round", methods=["POST"])
+def new_round():
+    global PLAYER_HAND
+    global DEALER_HAND
+    global PLAYER_TURN
+    PLAYER_TURN = True
+    PLAYER_HAND = []
+    DEALER_HAND = []
+    return render_template('index.html', cards=PLAYER_HAND, player_turn=PLAYER_TURN)
+
+@app.route("/reshuffle", methods=["POST"])
+def reshuffle():
+    global PLAYER_HAND
+    global DEALER_HAND
+    global PLAYER_TURN
+    global BURNED_CARDS
+    PLAYER_TURN = True
+    PLAYER_HAND = []
+    DEALER_HAND = []
+    BURNED_CARDS = []
+    return render_template('index.html', cards=PLAYER_HAND, player_turn=PLAYER_TURN)
+
+def calculate_risk():
+    global HALVES_VALUES
+    global BURNED_CARDS
+
+    total_card_val = 0
+    for card in BURNED_CARDS:
+        total_card_val += HALVES_VALUES[card[:-1]]
+
+    if total_card_val < -5:
+        RISK_EVAL = "Incredibly Risky"
+    if total_card_val < -3:
+        RISK_EVAL = "Very Risky"
+    if total_card_val < -1:
+        RISK_EVAL = "Somewhat Risky"
+    if total_card_val < 1:
+        RISK_EVAL = "Moderately Risky"
+    if total_card_val < 3:
+        RISK_EVAL = "Somewhat Safe"
+    if total_card_val < 5:
+        RISK_EVAL = "Mostly Safe"
+    else:
+        RISK_EVAL = "Safe"
+
+    return RISK_EVAL
+
+
+def calculate_multiplier():
+    global BURNED_CARDS
+    global HALVES_VALUES
+
+    total_card_val = 0
+    for card in BURNED_CARDS:
+        total_card_val += HALVES_VALUES[card[:-1]]
+
+    if total_card_val <= 1:
+        MULTIPLIER = 1
+    if total_card_val <= 2.5:
+        MULTIPLIER = 2
+    if total_card_val <= 4:
+        MULTIPLIER = 3
+    if total_card_val <= 5.5:
+        MULTIPLIER = 4
+    else:
+        MULTIPLIER = 5
+
+    return MULTIPLIER
+
 
 def calculate_bust_percentage():
     global BUST_PERCENTAGE
@@ -99,7 +198,7 @@ def calculate_bust_percentage():
     global DEALER_HAND
 
     hand_val = 0
-    for card in PLAYER_HAND: 
+    for card in PLAYER_HAND:
         try:
             hand_val += int(card[:-1])
         except:
@@ -108,25 +207,27 @@ def calculate_bust_percentage():
     if hand_val > 21:
         BUST_PERCENTAGE = 100
         return BUST_PERCENTAGE
-    
+
     if hand_val <= 11:
         BUST_PERCENTAGE = 0
         return BUST_PERCENTAGE
-    
+
     accepted_cards = (21 - hand_val) * 4
     for card in BURNED_CARDS:
-        try: 
+        try:
             if int(card[:-1]) < (21 - hand_val):
                 accepted_cards -= 1
         except:
             if (10 < (21 - hand_val)):
                 accepted_cards -= 1
-    
-    BUST_PERCENTAGE = 100 - (100 * (accepted_cards / (1.0  * (52 - len(BURNED_CARDS)))))
-        
+
+    BUST_PERCENTAGE = 100 - \
+        (100 * (accepted_cards / (1.0 * (52 - len(BURNED_CARDS)))))
+
     return BUST_PERCENTAGE
 
-def transcribeSymbol(input): 
+
+def transcribe_symbol(input):
     if input[-1] == "H":
         return input[:-1] + "♥"
     if input[-1] == "C":
@@ -137,11 +238,8 @@ def transcribeSymbol(input):
         return input[:-1] + "♠"
     return input
 
+
 # Definitions
-halves_values = {
-    '2': 0.5, '3': 1, '4': 1, '5': 1.5, '6': 1, '7': 0.5, '8': 0,
-    '9': -0.5, '10': -1, 'J': -1, 'Q': -1, 'K': -1, 'A': -1
-}
 
 def start_game(card):
     global GAME_OVER
@@ -153,10 +251,10 @@ def start_game(card):
     global DEALER_TOTAL
     global PLAYER_TURN
 
-    if (card[0] not in halves_values):
-        MAIN_COUNT += -1
+    if (card[0] not in HALVES_VALUES):
+        MAIN_COUNT -= 1
     else:
-        MAIN_COUNT += halves_values[card[0]]
+        MAIN_COUNT += HALVES_VALUES[card[0]]
         if card[0] == 'A':
             ACE_COUNT -= 1
 
@@ -186,7 +284,6 @@ def start_game(card):
         DEALER_HAND.append(card)
 
 
-
 def evaluate_hand(card):
     # Checking for soft totals (hands with an Ace counted as 11)
     global SOFT
@@ -194,7 +291,7 @@ def evaluate_hand(card):
     global PLAYER_HAND
 
     card = card[0]
-    if (card not in halves_values):
+    if (card not in HALVES_VALUES):
         PLAYER_TOTAL += 10
     elif card.isnumeric():
         PLAYER_TOTAL += int(card)
