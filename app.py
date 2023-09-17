@@ -19,7 +19,7 @@ HALVES_VALUES = {
 }
 BUST_PERCENTAGE = 0
 MULTIPLIER = 1
-RISK_EVAL = "fortnite Risky"
+RISK_EVAL = "Medum"
 
 
 app = Flask(__name__)
